@@ -19,7 +19,7 @@ import base64
 import soundfile as sf
 
 temp_dir = tempfile.TemporaryDirectory()
-st.write(temp_dir.name)
+# st.write(temp_dir.name)
 
 
 
