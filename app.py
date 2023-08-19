@@ -11,7 +11,7 @@ import pathlib
 import json
 import speech_recognition as sr
 from scipy.io import wavfile
-import noisereduce as nr
+# import noisereduce as nr
 # import os
 from PIL import Image
 import base64
