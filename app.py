@@ -17,9 +17,10 @@ from PIL import Image
 import base64
 # import pydub
 import soundfile as sf
+import pandas as pd
 
 temp_dir = tempfile.TemporaryDirectory()
-# st.write(temp_dir.name)
+st.write(temp_dir.name)
 
 
 
@@ -33,14 +34,13 @@ def extract_audio(video_file):
     # fps = video_clip.fps
     fps = 44100
     # print("FPS", fps)
-    audio_array = video_clip.audio.to_soundarray(fps=fps)  
+    audio_array = video_clip.audio.to_soundarray(fps=fps)
     # a = clip.to_soundarray(nbytes=4, buffersize=1000, fps=fps)
     n = AudioArrayClip(audio_array, fps=fps)
     writing_file_path = pathlib.Path(temp_dir.name) / "audio.wav"
     # writing_file_path = pathlib.Path("/Users/yamuna/MSc/App") / "audio.wav"
     # n.write_audiofile(writing_file_path, codec = 'pcm_s16le')
     sf.write(str(writing_file_path), audio_array, 44100)
-
     speech_writing_file_path = pathlib.Path(temp_dir.name) / "audio_transcribe.wav"
     y = (np.iinfo(np.int32).max * (audio_array/np.abs(audio_array).max())).astype(np.int32)
     wavfile.write(speech_writing_file_path, fps, y)
@@ -68,37 +68,37 @@ def extract_images(uploaded_file_path):
     video_clip = mp.VideoFileClip(str(uploaded_file_path))
     # Get the duration of the video in seconds
     video_duration = video_clip.duration
-    
+
     # Get frames at regular intervals (e.g., 1 frame per second)
     frame_interval = 1  # Adjust this as needed
     frames = []
     base64_frames = []
-    
+
     for t in range(0, int(video_duration), frame_interval):
         frame = video_clip.get_frame(t)
         base64_str = image_to_base64(frame)
         base64_frames.append(base64_str)
         frames.append(frame)
-    
+
     st.write(f"Extracted {len(frames)} frames from the video:")
-    
+
     # Display extracted frames
+    cols = st.columns(len(frames))
     for idx, frame in enumerate(frames):
-        st.image(Image.fromarray(frame), caption=f"Frame {idx + 1}")
+        cols[idx].image(Image.fromarray(frame), caption=f"Frame {idx + 1}")
 
     return base64_frames[0] if len(base64_frames) > 0 else base64_frames
-    
 
 
 def speech_to_text():
     print('start of speech')
     writing_file_path = pathlib.Path(temp_dir.name) / "audio_transcribe.wav"
-    # use the audio file as the audio source                                        
+    # use the audio file as the audio source
     r = sr.Recognizer()
     print('start of speech -recognizer')
     with sr.AudioFile(str(writing_file_path)) as source:
-        audio = r.record(source)  # read the entire audio file    
-        print('read audio-recognizer')  
+        audio = r.record(source)  # read the entire audio file
+        print('read audio-recognizer')
         try:
 
             # # Reduce noise from the audio data using noisereduce
@@ -114,9 +114,9 @@ def speech_to_text():
             print(text)
         except Exception as e:
             print(e)
-            st.error(f"An error occurred: {str(e)}")
+            # st.error(f"An error occurred: {str(e)}")
             text = None
-            print("sorry, could not recognise") 
+            print("sorry, could not recognise")
 
         st.write("Transcription: " , text)
     print('end of speech -recognizer')
@@ -134,7 +134,7 @@ def process_mp4(uploaded_file_path):
     audio_feature = extract_audio_features(uploaded_file_path)
     images = extract_images(uploaded_file_path)
     text = speech_to_text()
-    
+
     feature = {
         'audio' : str(audio_feature),
         'text' : text,
@@ -147,6 +147,7 @@ def main():
     st.title("Emotion Recognizing Engine")
 
     uploaded_file = st.file_uploader("Choose a video file", type=["mp4", "avi"])
+    #show_table()
 
     if uploaded_file:
         st.video(uploaded_file)
@@ -158,7 +159,7 @@ def main():
             output_temporary_file.write(uploaded_file.read())
 
         processed = process_mp4(uploaded_file_path)
-        
+
         if st.button("Send to AWS"):
             try:
                 # Prepare data for the REST API request
@@ -177,6 +178,43 @@ def main():
                     st.error("Failed to send video to AWS endpoint.")
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
+
+
+def show_table():
+  # Sample data
+  data = {
+      'Video File': ['dia0_utt1.mp4', 'dia0_utt2.mp4'],
+      'Audio File': ['sample-3s.mp3', 'sample-6s.mp3'],
+      'Set of Images': [
+          ['a.png', 'b.png'],
+          ['c.png']
+      ],
+      'Text 1': ['Lorem ipsum dolor sit amet', 'Consectetur adipiscing elit'],
+      'Text 2': ['Ut enim ad minim veniam', 'Quis nostrud exercitation ullamco'],
+      'Text 3': ['Duis aute irure dolor in', 'Reprehenderit in voluptate velit']
+  }
+
+
+  # Creating a DataFrame from the sample data
+  df = pd.DataFrame(data)
+  st.table(df)
+  # Displaying the table with images using Streamlit
+  st.write("Table with Images")
+  for index, row in df.iterrows():
+      cols = st.columns(6)
+
+      cols[0].video(row['Video File'])
+      cols[1].audio(row['Audio File'])
+      cols[2].text( row['Text 1'])
+      cols[3].text( row['Text 2'])
+      cols[4].text(  row['Text 3'])
+
+      for image_filename in row['Set of Images']:
+          #cols[5].image(image_filename, use_column_width=True)
+          cols[5].markdown(f"<p style='text-align: center; font-size: 14px;'></p>", unsafe_allow_html=True)
+          cols[5].markdown(f"<img src='{image_filename}' style='width: 100%; height: 50px; object-fit: cover;'>", unsafe_allow_html=True)
+
+      st.write("---")  # Add a separator between rows
 
 if __name__ == '__main__':
     main()
