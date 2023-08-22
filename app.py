@@ -20,7 +20,7 @@ import soundfile as sf
 import pandas as pd
 
 temp_dir = tempfile.TemporaryDirectory()
-st.write(temp_dir.name)
+
 
 
 
