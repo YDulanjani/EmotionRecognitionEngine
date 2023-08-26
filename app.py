@@ -114,7 +114,7 @@ def speech_to_text():
             print(text)
         except Exception as e:
             print(e)
-            # st.error(f"An error occurred: {str(e)}")
+            st.error(f"An error occurred: {str(e)}")
             text = None
             print("sorry, could not recognise")
 
@@ -172,8 +172,10 @@ def main():
                 print(response)
 
                 if response.status_code == 200:
-                    st.write(json.loads(response.content.decode('utf-8'))['body'])
-                    st.success("Video sent to AWS endpoint successfully!")
+                    # st.write(json.loads(response.content.decode('utf-8'))['body'])
+                    st.write("Video sent to AWS endpoint successfully!")
+                    final_msg = f"Predictied Emotion Category : {json.loads(response.content.decode('utf-8'))['body']}"
+                    st.success(final_msg )
                 else:
                     st.error("Failed to send video to AWS endpoint.")
             except Exception as e:
