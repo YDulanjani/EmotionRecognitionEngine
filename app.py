@@ -113,7 +113,7 @@ def speech_to_text():
             text = r.recognize_google(audio, language='en')
             print(text)
         except Exception as e:
-            print(e)
+            print(f"Error reported {str(e)} ")
             # st.error(f"An error occurred: {str(e)}")
             text = None
             print("sorry, could not recognise")
