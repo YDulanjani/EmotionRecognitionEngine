@@ -114,7 +114,7 @@ def speech_to_text():
             print(text)
         except Exception as e:
             print(e)
-            st.error(f"An error occurred: {str(e)}")
+            # st.error(f"An error occurred: {str(e)}")
             text = None
             print("sorry, could not recognise")
 
